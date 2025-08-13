@@ -1,9 +1,12 @@
 use macroquad::prelude::*;
-
+#[derive(Debug, PartialEq, Eq)]
 pub enum  Route{
     Left,
     Right,
     Straight,
+}
+pub trait Update {
+    fn update(&mut self, dt:f32);
 }
 
 pub struct Car {
@@ -12,11 +15,42 @@ pub struct Car {
     route : Route,
     color: Color,
 }
+
+pub struct TrafficLight{
+    state: LightState,
+    timer:f32,
+    red_duration:f32,
+    green_duration:f32,
+}
+
 pub enum LightState {
     Red,
     Green,
 }
 
+impl Update for Car {
+    fn update(&mut self, dt: f32) {
+        self.position += self.speed * dt;
+    }
+}
+
+impl Update for TrafficLight{
+    fn update(&mut self, dt:f32) {
+        self.timer-=dt;
+        if self.timer <=0 {
+            self.state =match self.state {
+                LightState::Green => {
+                    self.timer=self.red_duration;
+                    LightState::Red
+                }
+                LightState::Red => {
+                    self.timer = self.green_duration;
+                    LightState::Green
+                }
+            }
+        }
+    }
+}
 
 pub fn  up() {   
         draw_line((screen_width()/2.0)-40.0, screen_height() ,(screen_width()/2.0)-40.0,(screen_height()/2.0)+40.0,1.0, WHITE);
