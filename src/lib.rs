@@ -118,7 +118,6 @@ impl RoadIntersection {
 
     pub fn draw(&self) {
         // center
-        draw_circle_lines(screen_width() / 2.0, screen_height() / 2.0, 6.0, 4.0, RED);
 
         let feux_rouge = [
             vec2((screen_width() / 2.0) + 40.0, (screen_height() / 2.0) - 60.0),
@@ -139,7 +138,8 @@ impl RoadIntersection {
         down();
         left();
         right();
-        
+         draw_circle_lines(screen_width() / 2.0, screen_height() / 2.0, 6.0, 2.0, WHITE);
+
         for car in &self.cars {
             draw_rectangle(car.position.x, car.position.y, 30.0, 30.0, car.color);
         }
