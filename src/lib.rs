@@ -17,6 +17,8 @@ pub struct Car {
     speed: Vec2,
     route: Route,
     color: Color,
+    turned: bool, 
+
 }
 #[derive(Debug, PartialEq)]
 
@@ -31,12 +33,76 @@ pub enum LightState {
     Red,
     Green,
 }
+impl Car {
+    fn maybe_turn(&mut self) {
+        if self.turned {
+            return; // Already turned
+        }
+
+        let center_x = screen_width() / 2.0;
+        let center_y = screen_height() / 2.0;
+
+        // Coming from bottom (Up direction)
+        if self.speed.y < 0.0 && self.position.y < center_y -40.0 {
+            match self.color {
+                YELLOW => { // turn left
+                    self.speed = vec2(-100.0, 0.0);
+                    self.route = Route::Left;
+                }
+                PURPLE => { // turn right
+                    self.speed = vec2(100.0, 0.0);
+                    self.route = Route::Right;
+                }
+                BLUE => { // straight, do nothing
+                    self.route = Route::Straight;
+                }
+                _ => {}
+            }
+            self.turned = true;
+        }
+
+        // Coming from top (Down direction)
+        if self.speed.y > 0.0 && self.position.y > center_y {
+            match self.color {
+                YELLOW => { self.speed = vec2(100.0, 0.0); self.route = Route::Right; }
+                PURPLE => { self.speed = vec2(-100.0, 0.0); self.route = Route::Left; }
+                BLUE => { self.route = Route::Straight; }
+                _ => {}
+            }
+            self.turned = true;
+        }
+
+        // Coming from left (Right direction)
+        if self.speed.x > 0.0 && self.position.x > center_x{
+            match self.color {
+                YELLOW => { self.speed = vec2(0.0, -100.0); self.route = Route::Left; }
+                PURPLE => { self.speed = vec2(0.0, 100.0); self.route = Route::Right; }
+                BLUE => { self.route = Route::Straight; }
+                _ => {}
+            }
+            self.turned = true;
+        }
+
+        // Coming from right (Left direction)
+        if self.speed.x < 0.0 && self.position.x < center_x -40.0 {
+            match self.color {
+                YELLOW => { self.speed = vec2(0.0, 100.0); self.route = Route::Left; }
+                PURPLE => { self.speed = vec2(0.0, -100.0); self.route = Route::Right; }
+                BLUE => { self.route = Route::Straight; }
+                _ => {}
+            }
+            self.turned = true;
+        }
+    }
+}
 
 impl Update for Car {
     fn update(&mut self, dt: f32) {
         self.position += self.speed * dt;
+        self.maybe_turn(); 
     }
 }
+
 
 pub struct RoadIntersection {
     pub cars: Vec<Car>,
@@ -52,7 +118,7 @@ impl RoadIntersection {
             cars: Vec::new(),
             traffic_lights: vec![
                 TrafficLight {
-                    state: LightState::Green, // First light starts green
+                    state: LightState::Green,
                     green_duration: 3.0,
                     red_duration: 3.0,
                 },
@@ -113,6 +179,8 @@ impl RoadIntersection {
             speed,
             route: Route::Straight,
             color,
+            turned: false, 
+
         });
     }
 
