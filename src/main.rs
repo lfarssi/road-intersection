@@ -8,6 +8,9 @@
         let mut timer = get_time();
         loop {
             clear_background(BLACK);
+            draw_text("Press Arrows to add a car", 10.0, 20.0, 20.0, GREEN);
+            draw_text("Press R for random positions", 10.0, 40.0, 20.0, GREEN);
+            draw_text("Escape to quit", 10.0, 60.0, 20.0, GREEN);
             let dt  = get_frame_time();
             if get_time()-timer > 0.5 {
                 if is_key_pressed(KeyCode::Up){

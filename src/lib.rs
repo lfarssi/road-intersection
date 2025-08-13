@@ -35,65 +35,96 @@ pub enum LightState {
 }
 impl Car {
     fn maybe_turn(&mut self) {
-        if self.turned {
-            return; // Already turned
-        }
-
-        let center_x = screen_width() / 2.0;
-        let center_y = screen_height() / 2.0;
-
-        // Coming from bottom (Up direction)
-        if self.speed.y < 0.0 && self.position.y < center_y -40.0 {
-            match self.color {
-                YELLOW => { // turn left
-                    self.speed = vec2(-100.0, 0.0);
-                    self.route = Route::Left;
-                }
-                PURPLE => { // turn right
-                    self.speed = vec2(100.0, 100.0);
-                    self.route = Route::Right;
-                }
-                BLUE => { // straight, do nothing
-                    self.route = Route::Straight;
-                }
-                _ => {}
-            }
-            self.turned = true;
-        }
-
-        // Coming from top (Down direction)
-        if self.speed.y > 0.0 && self.position.y > center_y {
-            match self.color {
-                YELLOW => { self.speed = vec2(100.0, 0.0); self.route = Route::Right; }
-                PURPLE => { self.speed = vec2(-100.0, 0.0); self.route = Route::Left; }
-                BLUE => { self.route = Route::Straight; }
-                _ => {}
-            }
-            self.turned = true;
-        }
-
-        // Coming from left (Right direction)
-        if self.speed.x > 0.0 && self.position.x > center_x{
-            match self.color {
-                YELLOW => { self.speed = vec2(0.0, -100.0); self.route = Route::Left; }
-                PURPLE => { self.speed = vec2(0.0, 100.0); self.route = Route::Right; }
-                BLUE => { self.route = Route::Straight; }
-                _ => {}
-            }
-            self.turned = true;
-        }
-
-        // Coming from right (Left direction)
-        if self.speed.x < 0.0 && self.position.x < center_x -40.0 {
-            match self.color {
-                YELLOW => { self.speed = vec2(0.0, 100.0); self.route = Route::Left; }
-                PURPLE => { self.speed = vec2(0.0, -100.0); self.route = Route::Right; }
-                BLUE => { self.route = Route::Straight; }
-                _ => {}
-            }
-            self.turned = true;
-        }
+    if self.turned {
+        return; // Already turned
     }
+
+    let center_x = screen_width() / 2.0;
+    let center_y = screen_height() / 2.0;
+
+    match self.color {
+        // Right turn
+        PURPLE => {
+            // From bottom (moving up)
+            if self.speed.y < 0.0 && self.position.y <= center_y {
+                self.speed = vec2(100.0, 0.0); // move right
+                self.route = Route::Right;
+                self.turned = true;
+            }
+            // From top (moving down)
+            else if self.speed.y > 0.0 && self.position.y >= center_y-40.0 {
+                self.speed = vec2(-100.0, 0.0); // move left
+                self.route = Route::Right;
+                self.turned = true;
+            }
+            // From left (moving right)
+            else if self.speed.x > 0.0 && self.position.x >= center_x-40.0 {
+                self.speed = vec2(0.0, 100.0); // move down
+                self.route = Route::Right;
+                self.turned = true;
+            }
+            // From right (moving left)
+            else if self.speed.x < 0.0 && self.position.x <= center_x {
+                self.speed = vec2(0.0, -100.0); // move up
+                self.route = Route::Right;
+                self.turned = true;
+            }
+        }
+
+        // Left turn
+        YELLOW => {
+            // From bottom (moving up)
+            if self.speed.y < 0.0 && self.position.y <= center_y-40.0 {
+                self.speed = vec2(-100.0, 0.0); // move left
+                self.route = Route::Left;
+                self.turned = true;
+            }
+            // From top (moving down)
+            else if self.speed.y > 0.0 && self.position.y >= center_y +6.0 {
+                self.speed = vec2(100.0, 0.0); // move right
+                self.route = Route::Left;
+                self.turned = true;
+            }
+            // From left (moving right)
+            else if self.speed.x > 0.0 && self.position.x >= center_x +6.0 {
+                self.speed = vec2(0.0, -100.0); // move up
+                self.route = Route::Left;
+                self.turned = true;
+            }
+            // From right (moving left)
+            else if self.speed.x < 0.0 && self.position.x <= center_x - 40.0{
+                self.speed = vec2(0.0, 100.0); // move down
+                self.route = Route::Left;
+                self.turned = true;
+            }
+        }
+
+        // Straight
+        BLUE => {
+            // Make sure speed stays in the same direction
+            if self.speed.y < 0.0 && self.position.y <= center_y {
+                self.speed = vec2(0.0, -100.0);
+                self.route = Route::Straight;
+                self.turned = true;
+            } else if self.speed.y > 0.0 && self.position.y >= center_y {
+                self.speed = vec2(0.0, 100.0);
+                self.route = Route::Straight;
+                self.turned = true;
+            } else if self.speed.x > 0.0 && self.position.x >= center_x {
+                self.speed = vec2(100.0, 0.0);
+                self.route = Route::Straight;
+                self.turned = true;
+            } else if self.speed.x < 0.0 && self.position.x <= center_x {
+                self.speed = vec2(-100.0, 0.0);
+                self.route = Route::Straight;
+                self.turned = true;
+            }
+        }
+
+        _ => {}
+    }
+}
+
 }
 
 impl Update for Car {
@@ -240,7 +271,7 @@ pub fn down() {
 
 pub fn left() {
     draw_rectangle(0.0, screen_height() / 2.0 - 40.0, screen_width() / 2.0 - 40.0, 80.0, GRAY);
-
+    
     draw_line(0.0, (screen_height() / 2.0) - 40.0, (screen_width() / 2.0) - 40.0, (screen_height() / 2.0) - 40.0, 1.0, WHITE);
     draw_dashed_lines(0.0, screen_height() / 2.0, (screen_width() / 2.0) - 40.0, screen_height() / 2.0, 10.0, 5.0, 1.0, WHITE);
     draw_line(0.0, (screen_height() / 2.0) + 40.0, (screen_width() / 2.0) - 40.0, (screen_height() / 2.0) + 40.0, 1.0, WHITE);
