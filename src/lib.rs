@@ -50,7 +50,7 @@ impl Car {
                     self.route = Route::Left;
                 }
                 PURPLE => { // turn right
-                    self.speed = vec2(100.0, 0.0);
+                    self.speed = vec2(100.0, 100.0);
                     self.route = Route::Right;
                 }
                 BLUE => { // straight, do nothing
