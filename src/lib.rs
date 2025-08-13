@@ -1,4 +1,4 @@
-use macroquad::prelude::*;
+use macroquad::{prelude::*, rand::ChooseRandom};
 #[derive(Debug, PartialEq, Eq)]
 pub enum  Route{
     Left,
@@ -37,7 +37,7 @@ impl Update for Car {
 impl Update for TrafficLight{
     fn update(&mut self, dt:f32) {
         self.timer-=dt;
-        if self.timer <=0 {
+        if self.timer <=0.0 {
             self.state =match self.state {
                 LightState::Green => {
                     self.timer=self.red_duration;
@@ -52,6 +52,69 @@ impl Update for TrafficLight{
     }
 }
 
+pub struct Traffic {
+    pub cars: Vec<Car>,
+    pub traffic_lights :Vec<TrafficLight>,
+}
+
+impl Traffic {
+    pub fn new()->Self{
+        Self {
+            cars:Vec::new(),
+            traffic_lights: vec![
+                TrafficLight {
+                    state: LightState::Green,
+                    timer: 3.0,
+                    green_duration: 3.0,
+                    red_duration: 3.0,
+                },
+                TrafficLight {
+                    state: LightState::Red,
+                    timer: 3.0,
+                    green_duration: 3.0,
+                    red_duration: 3.0,
+                },
+                TrafficLight {
+                    state: LightState::Red,
+                    timer: 3.0,
+                    green_duration: 3.0,
+                    red_duration: 3.0,
+                },
+                TrafficLight {
+                    state: LightState::Red,
+                    timer: 3.0,
+                    green_duration: 3.0,
+                    red_duration: 3.0,
+                },
+            ]
+        }
+    }
+    pub fn update(&mut self,dt:f32 ){
+        for light in &mut self.traffic_lights{
+            light.update(dt);
+        } 
+        for car in &mut self.cars{
+            car.update(dt);
+        }
+    }
+    pub fn add_car(&mut self, direction : KeyCode){
+        let color = * [PURPLE, YELLOW, BLUE].choose().unwrap();
+        let (position, speed)= match direction {
+            KeyCode::Up =>(vec2(screen_width() / 2.0+40.0, screen_height()), vec2(0.0, -100.0)),
+            KeyCode::Down =>(vec2(screen_width() / 2.0+40.0, screen_height()), vec2(0.0, 100.0)),
+            KeyCode::Left =>(vec2(screen_width() / 2.0+40.0, screen_height()), vec2(-100.0, 0.0)),
+            KeyCode::Right =>(vec2(screen_width() / 2.0+40.0, screen_height()), vec2(100.0, 0.0)),
+            _ =>return ,
+        };
+        self.cars.push(Car{
+            position,
+            speed,
+            route: Route::Straight,
+            color,
+        });
+    }
+}
+
 pub fn  up() {   
         draw_line((screen_width()/2.0)-40.0, screen_height() ,(screen_width()/2.0)-40.0,(screen_height()/2.0)+40.0,1.0, WHITE);
         draw_line(screen_width()/2.0, screen_height() ,screen_width()/2.0,(screen_height()/2.0)+40.0,1.0, WHITE);
@@ -59,18 +122,18 @@ pub fn  up() {
         draw_rectangle((screen_width()/2.0)+40.0, (screen_height()/2.0)-60.0 ,20.0, 20.0, RED);
     }
     
-pub fn car_up(){
-    let mut timer = get_time();
-    let mut i=0;
-    while   i < screen_height() as i32{
-        if get_time()-timer > 0.4{
-            draw_rectangle((screen_width()/2.0 )+5.0, screen_height() - i as f32 ,30.0, 20.0, RED);
-            timer = get_time();
-            println!("{}", timer); 
-            i+=1;
-        }
-    }
-}
+// pub fn car_up(){
+//     let mut timer = get_time();
+//     let mut i=0;
+//     while   i < screen_height() as i32{
+//         if get_time()-timer > 0.4{
+//             draw_rectangle((screen_width()/2.0 )+5.0, screen_height() - i as f32 ,30.0, 20.0, RED);
+//             timer = get_time();
+//             println!("{}", timer); 
+//             i+=1;
+//         }
+//     }
+// }
 
 pub fn right(){
         draw_line((screen_width()/2.0) +40.0, (screen_height()/2.0)-40.0 ,screen_width(),(screen_height()/2.0)-40.0,1.0, WHITE);
