@@ -52,12 +52,12 @@ impl Update for TrafficLight{
     }
 }
 
-pub struct Traffic {
+pub struct RoadIntersection {
     pub cars: Vec<Car>,
     pub traffic_lights :Vec<TrafficLight>,
 }
 
-impl Traffic {
+impl RoadIntersection {
     pub fn new()->Self{
         Self {
             cars:Vec::new(),
@@ -113,6 +113,15 @@ impl Traffic {
             color,
         });
     }
+
+    pub fn draw(&self){
+        up();
+        down();
+        // center
+        draw_circle_lines(screen_width()/2.0, screen_height()/2.0, 6.0 , 4.0, RED);
+        left();
+        right();  
+    }
 }
 
 pub fn  up() {   
@@ -122,18 +131,6 @@ pub fn  up() {
         draw_rectangle((screen_width()/2.0)+40.0, (screen_height()/2.0)-60.0 ,20.0, 20.0, RED);
     }
     
-// pub fn car_up(){
-//     let mut timer = get_time();
-//     let mut i=0;
-//     while   i < screen_height() as i32{
-//         if get_time()-timer > 0.4{
-//             draw_rectangle((screen_width()/2.0 )+5.0, screen_height() - i as f32 ,30.0, 20.0, RED);
-//             timer = get_time();
-//             println!("{}", timer); 
-//             i+=1;
-//         }
-//     }
-// }
 
 pub fn right(){
         draw_line((screen_width()/2.0) +40.0, (screen_height()/2.0)-40.0 ,screen_width(),(screen_height()/2.0)-40.0,1.0, WHITE);
