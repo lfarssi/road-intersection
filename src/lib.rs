@@ -100,10 +100,10 @@ impl RoadIntersection {
     pub fn add_car(&mut self, direction : KeyCode){
         let color = * [PURPLE, YELLOW, BLUE].choose().unwrap();
         let (position, speed)= match direction {
-            KeyCode::Up =>(vec2(screen_width() / 2.0+40.0, screen_height()), vec2(0.0, -100.0)),
-            KeyCode::Down =>(vec2(screen_width() / 2.0+40.0, screen_height()), vec2(0.0, 100.0)),
-            KeyCode::Left =>(vec2(screen_width() / 2.0+40.0, screen_height()), vec2(-100.0, 0.0)),
-            KeyCode::Right =>(vec2(screen_width() / 2.0+40.0, screen_height()), vec2(100.0, 0.0)),
+            KeyCode::Up =>(vec2(screen_width() / 2.0+10.0, screen_height()), vec2(0.0, -100.0)),
+            KeyCode::Down =>(vec2(screen_width() / 2.0 -40.0, 0.0), vec2(0.0, 100.0)),
+            KeyCode::Left =>(vec2(screen_width() , screen_height()/2.0-40.0), vec2(-100.0, 0.0)),
+            KeyCode::Right =>(vec2(0.0, screen_height()/2.0+10.0), vec2(100.0, 0.0)),
             _ =>return ,
         };
         self.cars.push(Car{
@@ -115,39 +115,51 @@ impl RoadIntersection {
     }
 
     pub fn draw(&self){
-        up();
-        down();
+        
         // center
         draw_circle_lines(screen_width()/2.0, screen_height()/2.0, 6.0 , 4.0, RED);
-        left();
-        right();  
+        
+
+        for car in &self.cars {
+            draw_rectangle(car.position.x, car.position.y, 30.0, 30.0, car.color);
+        }
+        for  traffic_light in self.traffic_lights.iter(){
+            let color = match traffic_light.state{
+                LightState::Green => GREEN,
+                LightState::Red => RED,
+            };
+            up(color);
+            down(color);
+            left(color);
+            right(color);  
+        }
     }
 }
 
-pub fn  up() {   
+pub fn  up(color: Color) {   
         draw_line((screen_width()/2.0)-40.0, screen_height() ,(screen_width()/2.0)-40.0,(screen_height()/2.0)+40.0,1.0, WHITE);
         draw_line(screen_width()/2.0, screen_height() ,screen_width()/2.0,(screen_height()/2.0)+40.0,1.0, WHITE);
         draw_line((screen_width()/2.0)+40.0, screen_height() ,(screen_width()/2.0)+40.0,(screen_height()/2.0)+40.0,1.0, WHITE);
-        draw_rectangle((screen_width()/2.0)+40.0, (screen_height()/2.0)-60.0 ,20.0, 20.0, RED);
+        draw_rectangle((screen_width()/2.0)+40.0, (screen_height()/2.0)-60.0 ,20.0, 20.0, color);
     }
     
 
-pub fn right(){
+pub fn right(color: Color){
         draw_line((screen_width()/2.0) +40.0, (screen_height()/2.0)-40.0 ,screen_width(),(screen_height()/2.0)-40.0,1.0, WHITE);
         draw_line((screen_width()/2.0) +40.0, screen_height()/2.0 ,screen_width(),screen_height()/2.0,1.0, WHITE);
         draw_line((screen_width()/2.0) +40.0, (screen_height()/2.0)+40.0 ,screen_width(),(screen_height()/2.0)+40.0,1.0, WHITE);
-        draw_rectangle((screen_width()/2.0)+40.0, (screen_height()/2.0)+40.0 ,20.0, 20.0, GREEN);
+        draw_rectangle((screen_width()/2.0)+40.0, (screen_height()/2.0)+40.0 ,20.0, 20.0, color);
 }
-pub fn down(){
+pub fn down(color: Color){
         draw_line((screen_width()/2.0)-40.0, 0.0 ,(screen_width()/2.0)-40.0,(screen_height()/2.0)-40.0,1.0, WHITE);
         draw_line(screen_width()/2.0, 0.0 ,screen_width()/2.0,(screen_height()/2.0)-40.0,1.0, WHITE);
         draw_line((screen_width()/2.0)+40.0, 0.0 ,(screen_width()/2.0)+40.0,(screen_height()/2.0)-40.0,1.0, WHITE);
-        draw_rectangle((screen_width()/2.0)-60.0, (screen_height()/2.0)-60.0 ,20.0, 20.0, RED);
+        draw_rectangle((screen_width()/2.0)-60.0, (screen_height()/2.0)-60.0 ,20.0, 20.0, color);
 }
 
-pub fn left(){
+pub fn left(color: Color){
         draw_line(0.0, (screen_height()/2.0)-40.0 ,(screen_width()/2.0)-40.0,(screen_height()/2.0)-40.0,1.0, WHITE);
         draw_line(0.0, screen_height()/2.0 ,(screen_width()/2.0)-40.0,screen_height()/2.0,1.0, WHITE);
         draw_line(0.0, (screen_height()/2.0)+40.0 ,(screen_width()/2.0)-40.0,(screen_height()/2.0)+40.0,1.0, WHITE);
-        draw_rectangle((screen_width()/2.0)-60.0, (screen_height()/2.0)+40.0 ,20.0, 20.0, RED);
+        draw_rectangle((screen_width()/2.0)-60.0, (screen_height()/2.0)+40.0 ,20.0, 20.0, color);
 }
