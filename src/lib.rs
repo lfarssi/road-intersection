@@ -119,47 +119,96 @@ impl RoadIntersection {
         // center
         draw_circle_lines(screen_width()/2.0, screen_height()/2.0, 6.0 , 4.0, RED);
         
-
-        for car in &self.cars {
-            draw_rectangle(car.position.x, car.position.y, 30.0, 30.0, car.color);
-        }
-        for  traffic_light in self.traffic_lights.iter(){
+        let feux_rouge = [
+            vec2((screen_width()/2.0)+40.0 , (screen_height()/2.0)-60.0), 
+            vec2((screen_width()/2.0)+40.0, (screen_height()/2.0)+40.0), 
+            vec2((screen_width()/2.0)-60.0,(screen_height()/2.0)-60.0), 
+            vec2((screen_width()/2.0)-60.0,(screen_height()/2.0)+40.0), 
+        ];
+        
+        for  (i,traffic_light) in self.traffic_lights.iter().enumerate(){
             let color = match traffic_light.state{
                 LightState::Green => GREEN,
                 LightState::Red => RED,
             };
-            up(color);
-            down(color);
-            left(color);
-            right(color);  
+            draw_rectangle(
+                feux_rouge[i].x,
+                feux_rouge[i].y,
+                20.0,
+                20.0,
+                color
+            );
+        }
+        up();
+        down();
+        left();
+        right();  
+        for car in &self.cars {
+            draw_rectangle(car.position.x, car.position.y, 30.0, 30.0, car.color);
         }
     }
 }
 
-pub fn  up(color: Color) {   
-        draw_line((screen_width()/2.0)-40.0, screen_height() ,(screen_width()/2.0)-40.0,(screen_height()/2.0)+40.0,1.0, WHITE);
-        draw_line(screen_width()/2.0, screen_height() ,screen_width()/2.0,(screen_height()/2.0)+40.0,1.0, WHITE);
-        draw_line((screen_width()/2.0)+40.0, screen_height() ,(screen_width()/2.0)+40.0,(screen_height()/2.0)+40.0,1.0, WHITE);
-        draw_rectangle((screen_width()/2.0)+40.0, (screen_height()/2.0)-60.0 ,20.0, 20.0, color);
-    }
+pub fn  up() {   
+    draw_rectangle(screen_width()/2.0-40.0, screen_height()/2.0, 80.0, screen_height(),GRAY);
     
-
-pub fn right(color: Color){
-        draw_line((screen_width()/2.0) +40.0, (screen_height()/2.0)-40.0 ,screen_width(),(screen_height()/2.0)-40.0,1.0, WHITE);
-        draw_line((screen_width()/2.0) +40.0, screen_height()/2.0 ,screen_width(),screen_height()/2.0,1.0, WHITE);
-        draw_line((screen_width()/2.0) +40.0, (screen_height()/2.0)+40.0 ,screen_width(),(screen_height()/2.0)+40.0,1.0, WHITE);
-        draw_rectangle((screen_width()/2.0)+40.0, (screen_height()/2.0)+40.0 ,20.0, 20.0, color);
-}
-pub fn down(color: Color){
-        draw_line((screen_width()/2.0)-40.0, 0.0 ,(screen_width()/2.0)-40.0,(screen_height()/2.0)-40.0,1.0, WHITE);
-        draw_line(screen_width()/2.0, 0.0 ,screen_width()/2.0,(screen_height()/2.0)-40.0,1.0, WHITE);
-        draw_line((screen_width()/2.0)+40.0, 0.0 ,(screen_width()/2.0)+40.0,(screen_height()/2.0)-40.0,1.0, WHITE);
-        draw_rectangle((screen_width()/2.0)-60.0, (screen_height()/2.0)-60.0 ,20.0, 20.0, color);
+    draw_line((screen_width()/2.0)-40.0, screen_height() ,(screen_width()/2.0)-40.0,(screen_height()/2.0)+40.0,1.0, WHITE);
+    draw_dashed_lines(screen_width()/2.0, screen_height() /2.0+40.0,screen_width()/2.0,screen_height()+40.0,10.0,5.0,1.0, WHITE);
+    draw_line((screen_width()/2.0)+40.0, screen_height() ,(screen_width()/2.0)+40.0,(screen_height()/2.0)+40.0,1.0, WHITE);
 }
 
-pub fn left(color: Color){
+
+pub fn right(){
+    draw_rectangle(screen_width()/2.0+40.0, screen_height()/2.0-40.0, screen_width()/2.0-40.0, 80.0,GRAY);
+    
+    draw_line((screen_width()/2.0) +40.0, (screen_height()/2.0)-40.0 ,screen_width(),(screen_height()/2.0)-40.0,1.0, WHITE);
+    draw_dashed_lines((screen_width()/2.0) +40.0, screen_height()/2.0 ,screen_width(),screen_height()/2.0,10.0,5.0,1.0, WHITE);
+    draw_line((screen_width()/2.0) +40.0, (screen_height()/2.0)+40.0 ,screen_width(),(screen_height()/2.0)+40.0,1.0, WHITE);
+}
+pub fn down(){
+    draw_rectangle(screen_width()/2.0-40.0, 0.0,80.0,screen_height()/2.0,GRAY);
+
+    draw_line((screen_width()/2.0)-40.0, 0.0 ,(screen_width()/2.0)-40.0,(screen_height()/2.0)-40.0,1.0, WHITE);
+    draw_dashed_lines(screen_width()/2.0, 0.0 ,screen_width()/2.0,(screen_height()/2.0)-50.0,10.0,5.0,1.0, WHITE);
+    draw_line((screen_width()/2.0)+40.0, 0.0 ,(screen_width()/2.0)+40.0,(screen_height()/2.0)-40.0,1.0, WHITE);
+}
+
+pub fn left(){
+        draw_rectangle(0.0, screen_height()/2.0-40.0, screen_width()/2.0-40.0, 80.0,GRAY);
+
         draw_line(0.0, (screen_height()/2.0)-40.0 ,(screen_width()/2.0)-40.0,(screen_height()/2.0)-40.0,1.0, WHITE);
-        draw_line(0.0, screen_height()/2.0 ,(screen_width()/2.0)-40.0,screen_height()/2.0,1.0, WHITE);
+        draw_dashed_lines(0.0, screen_height()/2.0 ,(screen_width()/2.0)-40.0,screen_height()/2.0,10.0,5.0,1.0, WHITE);
         draw_line(0.0, (screen_height()/2.0)+40.0 ,(screen_width()/2.0)-40.0,(screen_height()/2.0)+40.0,1.0, WHITE);
-        draw_rectangle((screen_width()/2.0)-60.0, (screen_height()/2.0)+40.0 ,20.0, 20.0, color);
+}
+pub fn draw_dashed_lines(
+    start_x: f32,
+    start_y: f32,
+    end_x: f32,
+    end_y: f32,
+    dash_length: f32,
+    gap_length: f32,
+    thickness: f32,
+    color: Color,
+) {
+    let dx = end_x - start_x;
+    let dy = end_y - start_y;
+
+    // Horizontal
+    if dy.abs() < f32::EPSILON {
+        let mut x = start_x;
+        while x < end_x {
+            let next_x = (x + dash_length).min(end_x);
+            draw_line(x, start_y, next_x, start_y, thickness, color);
+            x += dash_length + gap_length;
+        }
+    }
+    // Vertical
+    else if dx.abs() < f32::EPSILON {
+        let mut y = start_y;
+        while y < end_y {
+            let next_y = (y + dash_length).min(end_y);
+            draw_line(start_x, y, start_x, next_y, thickness, color);
+            y += dash_length + gap_length;
+        }
+    }
 }
