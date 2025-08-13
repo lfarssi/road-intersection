@@ -1,27 +1,31 @@
 use macroquad::{prelude::*, rand::ChooseRandom};
+
 #[derive(Debug, PartialEq, Eq)]
-pub enum  Route{
+pub enum Route {
     Left,
     Right,
     Straight,
 }
+
 pub trait Update {
-    fn update(&mut self, dt:f32);
+    fn update(&mut self, dt: f32);
 }
+#[derive(Debug, PartialEq)]
 
 pub struct Car {
-    position : Vec2,
-    speed : Vec2,
-    route : Route,
+    position: Vec2,
+    speed: Vec2,
+    route: Route,
     color: Color,
 }
+#[derive(Debug, PartialEq)]
 
-pub struct TrafficLight{
+pub struct TrafficLight {
     state: LightState,
-    timer:f32,
-    red_duration:f32,
-    green_duration:f32,
+    green_duration: f32,
+    red_duration: f32,
 }
+#[derive(Debug, PartialEq)]
 
 pub enum LightState {
     Red,
@@ -34,79 +38,77 @@ impl Update for Car {
     }
 }
 
-impl Update for TrafficLight{
-    fn update(&mut self, dt:f32) {
-        self.timer-=dt;
-        if self.timer <=0.0 {
-            self.state =match self.state {
-                LightState::Green => {
-                    self.timer=self.red_duration;
-                    LightState::Red
-                }
-                LightState::Red => {
-                    self.timer = self.green_duration;
-                    LightState::Green
-                }
-            }
-        }
-    }
-}
-
 pub struct RoadIntersection {
     pub cars: Vec<Car>,
-    pub traffic_lights :Vec<TrafficLight>,
+    pub traffic_lights: Vec<TrafficLight>,
+    // Sequential control fields
+    current_light_index: usize,
+    timer: f32,
 }
 
 impl RoadIntersection {
-    pub fn new()->Self{
+    pub fn new() -> Self {
         Self {
-            cars:Vec::new(),
+            cars: Vec::new(),
             traffic_lights: vec![
                 TrafficLight {
-                    state: LightState::Green,
-                    timer: 3.0,
+                    state: LightState::Green, // First light starts green
                     green_duration: 3.0,
                     red_duration: 3.0,
                 },
                 TrafficLight {
                     state: LightState::Red,
-                    timer: 3.0,
                     green_duration: 3.0,
                     red_duration: 3.0,
                 },
                 TrafficLight {
                     state: LightState::Red,
-                    timer: 3.0,
                     green_duration: 3.0,
                     red_duration: 3.0,
                 },
                 TrafficLight {
                     state: LightState::Red,
-                    timer: 3.0,
                     green_duration: 3.0,
                     red_duration: 3.0,
                 },
-            ]
+            ],
+            current_light_index: 0,
+            timer: 3.0, // Start with green duration
         }
     }
-    pub fn update(&mut self,dt:f32 ){
-        for light in &mut self.traffic_lights{
-            light.update(dt);
-        } 
-        for car in &mut self.cars{
+
+    pub fn update(&mut self, dt: f32) {
+        // Update cars
+        for car in &mut self.cars {
             car.update(dt);
         }
+
+        // Update traffic light sequence
+        self.timer -= dt;
+        
+        if self.timer <= 0.0 {
+            // Current light turns red
+            self.traffic_lights[self.current_light_index].state = LightState::Red;
+            
+            // Move to next light
+            self.current_light_index = (self.current_light_index + 1) % self.traffic_lights.len();
+            
+            // Set next light to green and reset timer
+            self.traffic_lights[self.current_light_index].state = LightState::Green;
+            self.timer = self.traffic_lights[self.current_light_index].green_duration;
+        }
     }
-    pub fn add_car(&mut self, direction : KeyCode){
-        let color = * [PURPLE, YELLOW, BLUE].choose().unwrap();
-        let (position, speed)= match direction {
-            KeyCode::Up =>(vec2(screen_width() / 2.0+10.0, screen_height()), vec2(0.0, -100.0)),
-            KeyCode::Down =>(vec2(screen_width() / 2.0 -40.0, 0.0), vec2(0.0, 100.0)),
-            KeyCode::Left =>(vec2(screen_width() , screen_height()/2.0-40.0), vec2(-100.0, 0.0)),
-            KeyCode::Right =>(vec2(0.0, screen_height()/2.0+10.0), vec2(100.0, 0.0)),
-            _ =>return ,
+
+    pub fn add_car(&mut self, direction: KeyCode) {
+        let color = *[PURPLE, YELLOW, BLUE].choose().unwrap();
+        let (position, speed) = match direction {
+            KeyCode::Up => (vec2(screen_width() / 2.0 + 10.0, screen_height()), vec2(0.0, -100.0)),
+            KeyCode::Down => (vec2(screen_width() / 2.0 - 40.0, 0.0), vec2(0.0, 100.0)),
+            KeyCode::Left => (vec2(screen_width(), screen_height() / 2.0 - 40.0), vec2(-100.0, 0.0)),
+            KeyCode::Right => (vec2(0.0, screen_height() / 2.0 + 10.0), vec2(100.0, 0.0)),
+            _ => return,
         };
-        self.cars.push(Car{
+        self.cars.push(Car {
             position,
             speed,
             route: Route::Straight,
@@ -114,72 +116,68 @@ impl RoadIntersection {
         });
     }
 
-    pub fn draw(&self){
-        
+    pub fn draw(&self) {
         // center
-        draw_circle_lines(screen_width()/2.0, screen_height()/2.0, 6.0 , 4.0, RED);
-        
+        draw_circle_lines(screen_width() / 2.0, screen_height() / 2.0, 6.0, 4.0, RED);
+
         let feux_rouge = [
-            vec2((screen_width()/2.0)+40.0 , (screen_height()/2.0)-60.0), 
-            vec2((screen_width()/2.0)+40.0, (screen_height()/2.0)+40.0), 
-            vec2((screen_width()/2.0)-60.0,(screen_height()/2.0)-60.0), 
-            vec2((screen_width()/2.0)-60.0,(screen_height()/2.0)+40.0), 
+            vec2((screen_width() / 2.0) + 40.0, (screen_height() / 2.0) - 60.0),
+            vec2((screen_width() / 2.0) + 40.0, (screen_height() / 2.0) + 40.0),
+            vec2((screen_width() / 2.0) - 60.0, (screen_height() / 2.0) - 60.0),
+            vec2((screen_width() / 2.0) - 60.0, (screen_height() / 2.0) + 40.0),
         ];
-        
-        for  (i,traffic_light) in self.traffic_lights.iter().enumerate(){
-            let color = match traffic_light.state{
+
+        for (i, traffic_light) in self.traffic_lights.iter().enumerate() {
+            let color = match traffic_light.state {
                 LightState::Green => GREEN,
                 LightState::Red => RED,
             };
-            draw_rectangle(
-                feux_rouge[i].x,
-                feux_rouge[i].y,
-                20.0,
-                20.0,
-                color
-            );
+            draw_rectangle(feux_rouge[i].x, feux_rouge[i].y, 20.0, 20.0, color);
         }
+        
         up();
         down();
         left();
-        right();  
+        right();
+        
         for car in &self.cars {
             draw_rectangle(car.position.x, car.position.y, 30.0, 30.0, car.color);
         }
     }
 }
 
-pub fn  up() {   
-    draw_rectangle(screen_width()/2.0-40.0, screen_height()/2.0, 80.0, screen_height(),GRAY);
-    
-    draw_line((screen_width()/2.0)-40.0, screen_height() ,(screen_width()/2.0)-40.0,(screen_height()/2.0)+40.0,1.0, WHITE);
-    draw_dashed_lines(screen_width()/2.0, screen_height() /2.0+40.0,screen_width()/2.0,screen_height()+40.0,10.0,5.0,1.0, WHITE);
-    draw_line((screen_width()/2.0)+40.0, screen_height() ,(screen_width()/2.0)+40.0,(screen_height()/2.0)+40.0,1.0, WHITE);
+pub fn up() {
+    draw_rectangle(screen_width() / 2.0 - 40.0, screen_height() / 2.0, 80.0, screen_height(), GRAY);
+
+    draw_line((screen_width() / 2.0) - 40.0, screen_height(), (screen_width() / 2.0) - 40.0, (screen_height() / 2.0) + 40.0, 1.0, WHITE);
+    draw_dashed_lines(screen_width() / 2.0, screen_height() / 2.0 + 40.0, screen_width() / 2.0, screen_height() + 40.0, 10.0, 5.0, 1.0, WHITE);
+    draw_line((screen_width() / 2.0) + 40.0, screen_height(), (screen_width() / 2.0) + 40.0, (screen_height() / 2.0) + 40.0, 1.0, WHITE);
 }
 
+pub fn right() {
+    draw_rectangle(screen_width() / 2.0 + 40.0, screen_height() / 2.0 - 40.0, screen_width() / 2.0 - 40.0, 80.0, GRAY);
 
-pub fn right(){
-    draw_rectangle(screen_width()/2.0+40.0, screen_height()/2.0-40.0, screen_width()/2.0-40.0, 80.0,GRAY);
-    
-    draw_line((screen_width()/2.0) +40.0, (screen_height()/2.0)-40.0 ,screen_width(),(screen_height()/2.0)-40.0,1.0, WHITE);
-    draw_dashed_lines((screen_width()/2.0) +40.0, screen_height()/2.0 ,screen_width(),screen_height()/2.0,10.0,5.0,1.0, WHITE);
-    draw_line((screen_width()/2.0) +40.0, (screen_height()/2.0)+40.0 ,screen_width(),(screen_height()/2.0)+40.0,1.0, WHITE);
-}
-pub fn down(){
-    draw_rectangle(screen_width()/2.0-40.0, 0.0,80.0,screen_height()/2.0,GRAY);
-
-    draw_line((screen_width()/2.0)-40.0, 0.0 ,(screen_width()/2.0)-40.0,(screen_height()/2.0)-40.0,1.0, WHITE);
-    draw_dashed_lines(screen_width()/2.0, 0.0 ,screen_width()/2.0,(screen_height()/2.0)-50.0,10.0,5.0,1.0, WHITE);
-    draw_line((screen_width()/2.0)+40.0, 0.0 ,(screen_width()/2.0)+40.0,(screen_height()/2.0)-40.0,1.0, WHITE);
+    draw_line((screen_width() / 2.0) + 40.0, (screen_height() / 2.0) - 40.0, screen_width(), (screen_height() / 2.0) - 40.0, 1.0, WHITE);
+    draw_dashed_lines((screen_width() / 2.0) + 40.0, screen_height() / 2.0, screen_width(), screen_height() / 2.0, 10.0, 5.0, 1.0, WHITE);
+    draw_line((screen_width() / 2.0) + 40.0, (screen_height() / 2.0) + 40.0, screen_width(), (screen_height() / 2.0) + 40.0, 1.0, WHITE);
 }
 
-pub fn left(){
-        draw_rectangle(0.0, screen_height()/2.0-40.0, screen_width()/2.0-40.0, 80.0,GRAY);
+pub fn down() {
+    draw_rectangle(screen_width() / 2.0 - 40.0, 0.0, 80.0, screen_height() / 2.0, GRAY);
 
-        draw_line(0.0, (screen_height()/2.0)-40.0 ,(screen_width()/2.0)-40.0,(screen_height()/2.0)-40.0,1.0, WHITE);
-        draw_dashed_lines(0.0, screen_height()/2.0 ,(screen_width()/2.0)-40.0,screen_height()/2.0,10.0,5.0,1.0, WHITE);
-        draw_line(0.0, (screen_height()/2.0)+40.0 ,(screen_width()/2.0)-40.0,(screen_height()/2.0)+40.0,1.0, WHITE);
+    draw_line((screen_width() / 2.0) - 40.0, 0.0, (screen_width() / 2.0) - 40.0, (screen_height() / 2.0) - 40.0, 1.0, WHITE);
+    draw_dashed_lines(screen_width() / 2.0, 0.0, screen_width() / 2.0, (screen_height() / 2.0) - 50.0, 10.0, 5.0, 1.0, WHITE);
+    draw_line((screen_width() / 2.0) + 40.0, 0.0, (screen_width() / 2.0) + 40.0, (screen_height() / 2.0) - 40.0, 1.0, WHITE);
 }
+
+pub fn left() {
+    draw_rectangle(0.0, screen_height() / 2.0 - 40.0, screen_width() / 2.0 - 40.0, 80.0, GRAY);
+
+    draw_line(0.0, (screen_height() / 2.0) - 40.0, (screen_width() / 2.0) - 40.0, (screen_height() / 2.0) - 40.0, 1.0, WHITE);
+    draw_dashed_lines(0.0, screen_height() / 2.0, (screen_width() / 2.0) - 40.0, screen_height() / 2.0, 10.0, 5.0, 1.0, WHITE);
+    draw_line(0.0, (screen_height() / 2.0) + 40.0, (screen_width() / 2.0) - 40.0, (screen_height() / 2.0) + 40.0, 1.0, WHITE);
+}
+
 pub fn draw_dashed_lines(
     start_x: f32,
     start_y: f32,
